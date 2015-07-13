@@ -16,7 +16,7 @@ module.exports = function() {
             }).filter(function(l) { return !!l; });
 
         var oldProcessArgs = ['node', '--harmony', '--harmony-proxies',
-            './src/background-process.js', '' + pid];
+            './background-process.js', '' + pid];
 
         var isOldProcess = procInfo.every(function(pi, i) {
             if(!oldProcessArgs[i]) return true;

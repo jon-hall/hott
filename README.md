@@ -39,3 +39,4 @@ hott start
 Features which should be coming soon:
 - CLI actions for adding, modifying and removing shortcuts more easily
 - More flexible `cmd` options supporting inline JS and `spawn` support.
+- Watching the `.hott` file for changes and refreshing the daemon as required.

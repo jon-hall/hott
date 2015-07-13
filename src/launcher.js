@@ -13,8 +13,12 @@ module.exports = function() {
     var hott = cp.spawn('node', [
         '--harmony',
         '--harmony-proxies',
-        './src/background-process.js'
-    ], { detached: true, stdio: [ 'ignore', out, err ] });
+        './background-process.js'
+    ], {
+        cwd: __dirname,
+        detached: true,
+        stdio: [ 'ignore', out, err ]
+    });
 
     // Store pid for use by shutdown
     fs.writeFileSync(pidfile, hott.pid);
