@@ -13,6 +13,7 @@ var Modifiers = {
     "MOD_SHIFT": 4,
     "MOD_WIN": 8
 };
+
 var Keys = {
     "VK_ABNT_C1": 193,
     "VK_ABNT_C2": 194,
@@ -231,7 +232,7 @@ var winapi = new ffi.Library("User32", {
 });
 
 // Register hotkeys using winapi
-exports.registerHotkey = function*(key, modifiers, command) {
+exports.registerHotkey = function(key, modifiers, command) {
     if(!Keys[key]) throw new Error('Invalid key specified! ("' + key + '")');
 
     console.log('Attempting to register hotkey (key: "' + key + '", modifiers: ' +
@@ -247,7 +248,7 @@ exports.registerHotkey = function*(key, modifiers, command) {
 };
 
 // Listen for hotkeys firing
-exports.monitorHotkeys = function*(key, modifiers, command) {
+exports.monitorHotkeys = function(cb) {
     var msg = new Msg({}),
         cmd;
 
@@ -256,12 +257,11 @@ exports.monitorHotkeys = function*(key, modifiers, command) {
             cmd = commands[msg.time];
             if(cmd) {
                 // TODO: Support for more sophisticated command running...
-                var res = $.suspend.resume();
-                yield $.exec(cmd, function(err, stdout, stderr) {
-                    if(err || stderr) console.error(err || stderr);
-                    else console.log(stdout.replace(/[\r\n]+$/, ''));
-                    res();
-                });
+                if(typeof cmd === 'function') {
+                    cmd();
+                } else {
+                    $.exec(cmd, cb);
+                }
             }
         }
     }

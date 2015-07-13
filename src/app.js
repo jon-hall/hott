@@ -14,11 +14,14 @@ module.exports = function*(opts) {
     // Register all of the hotkeys in the config using our windows service
     for(i = 0, len = config.length; i < len; i++) {
         hotkey = config[i];
-        yield* $.win.registerHotkey(hotkey.key, hotkey.modifiers, hotkey.cmd);
+        $.win.registerHotkey(hotkey.key, hotkey.modifiers, hotkey.cmd);
     }
 
     // Listen for hotkeys firing using our windows Service
-    yield* $.win.monitorHotkeys();
+    $.win.monitorHotkeys(function(err, stdout, stderr) {
+        if(err || stderr) console.error(err || stderr);
+        else console.log(stdout.replace(/[\r\n]+$/, ''));
+    });
 }
 
 function* readFileOrSaveDefault(path, defaultValue) {
@@ -35,3 +38,5 @@ function* readFileOrSaveDefault(path, defaultValue) {
 
     return result;
 }
+
+exports.Api = $.win;
