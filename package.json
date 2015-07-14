@@ -1,6 +1,6 @@
 {
   "name": "hott",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Windows global hotkeys for node",
   "main": "index.js",
   "bin": "src/cli.js",
