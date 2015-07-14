@@ -1,5 +1,6 @@
 var $ = require('get-me')(require, {
-        exec: '[child_process].exec'
+        exec: '[child_process].exec',
+        _: 'underscore'
     }),
     ffi = $.ffi,
     ref = $.ref,
@@ -228,41 +229,78 @@ var MsgPtr = ref.refType(Msg);
 
 var winapi = new ffi.Library("User32", {
     "RegisterHotKey": ["bool", ["int32", "int32", "uint32", "uint32"]],
-    "GetMessageA": ["bool", [MsgPtr, "int32", "uint32", "uint32"]]
+    "PeekMessageA": ["bool", [MsgPtr, "int32", "uint32", "uint32", "uint32"]]
 });
 
 // Register hotkeys using winapi
-exports.registerHotkey = function(key, modifiers, command) {
+exports.registerHotkey = function(key, modifiers, command, cb) {
     if(!Keys[key]) throw new Error('Invalid key specified! ("' + key + '")');
 
-    console.log('Attempting to register hotkey (key: "' + key + '", modifiers: ' +
-        (modifiers ? '"' + modifiers.join('", "') + '"' : 'None') +  ')...');
+    // If 'modifiers' is not supplied, or not an array, then we error
+    if(!(modifiers && Array.isArray(modifiers))) {
+        throw new Error('You must specify a modifiers array.');
+    }
 
     if(winapi.RegisterHotKey(null, ++hkId, modifiers && modifiers.reduce((acc, m) => {
         return acc | (Modifiers[m] || 0);
     }, 0) || 0, Keys[key])) {
-        console.log('Registered hotkey! (key: "' + key + '", modifiers: ' +
-            (modifiers ? '"' + modifiers.join('", "') + '"' : 'None') +  ')');
-        commands[hkId] = command;
+        commands[hkId] = { cmd: command, cb: cb };
     }
 };
 
 // Listen for hotkeys firing
-exports.monitorHotkeys = function(cb) {
+var defaultMonitorOpts = {
+    poll: 200
+};
+exports.monitorHotkeys = function(opts) {
     var msg = new Msg({}),
-        cmd;
+        key,
+        reg,
+        cmd,
+        cb,
+        r,
+        s;
 
-    while(winapi.GetMessageA(msg.ref(), null, 0, 0) !== 0) {
+    // Clear invalid poll periods
+    if((opts && opts.poll) < 10) opts.poll = undefined;
+
+    // Apply default options
+    opts = $._.extend({}, defaultMonitorOpts, opts);
+
+    key = setInterval(function() {
+        winapi.PeekMessageA(msg.ref(), null, 0, 0, 1);
         if(msg.wParam === WM_HOTKEY) {
-            cmd = commands[msg.time];
-            if(cmd) {
-                // TODO: Support for more sophisticated command running...
+            reg = commands[msg.time];
+            if(reg && reg.cmd) {
+                cmd = reg.cmd;
+                cb = reg.cb;
+
+                // cmd can be a function to be called
                 if(typeof cmd === 'function') {
-                    cmd();
+                    r = cmd();
+                    cb && cb(null, r);
+                // or javascript to be eval'd
+                } else if (cmd.js) {
+                    r = eval(cmd.js);
+                    cb && cb(null, r);
+                // or arguments for child_process.spawn
+                } else if (cmd.spawn) {
+                    s = cmd.spawn;
+                    r = $.spawn(s.cmd, s.args, s.opts);
+                    cb && cb(null, r);
+                // anything else is fed into child_process.exec
                 } else {
                     $.exec(cmd, cb);
                 }
             }
+
+            // Make sure we don't come back here till me actually get another message
+            msg.wParam = WM_HOTKEY + 1;
         }
-    }
+    }, opts.poll);
+
+    // Return a disposer to let callers kill the interval timer
+    return function() {
+        clearInterval(key);
+    };
 };

@@ -39,4 +39,4 @@ function* readFileOrSaveDefault(path, defaultValue) {
     return result;
 }
 
-exports.Api = $.win;
+module.exports.Api = $.win;

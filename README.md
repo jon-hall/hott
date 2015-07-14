@@ -28,13 +28,36 @@ You can also use hott within scripts to establish (currently only **global**) ke
 var hott = require('hott').Api;
 
 // Register a hotkey to execute some code (using child_process.exec)
-hott.registerHotkey("VK_NUMPAD5", ["MOD_SHIFT"], "node %USERPROFILE%/Documents/my-script.js --some_param=5");
+hott.registerHotkey(
+	"VK_NUMPAD5",
+	["MOD_SHIFT"],
+	"node %USERPROFILE%/Documents/my-script.js --some_param=5",
+	function(err, stdout, stderr) {
+		// Callback to be passed to child_process.exec
+	});
 
-// Register a hotkey with a callback which is invoked when the hotkey is pressed
-hott.registerHotkey("VK_NUMPAD8", ["MOD_SHIFT"], function onShiftEightPressed() { /* ... */ });
+// Now accepting callbacks too
+hott.registerHotkey("VK_NUMPAD8", ["MOD_SHIFT"], function onShiftEightPressed() {
+	/* ... */
+});
 
-// You MUST then tell hott to monitor for the hotkeys being pressed!  Optionally, supplying a callback to deal with output from 'exec'
-hott.monitorHotkeys(function(err, stdout, stderr) { /* Handle 'exec' results for code hotkeys */ });
+// Eval javascript!
+hott.registerHotkey("VK_NUMPAD2", ["MOD_ALT"], {js: 'console.log("Yowzah!")'});
+
+// Or spawn a process
+hott.registerHotkey("VK_NUMPAD9", ["MOD_CONTROL"], {
+	spawn: {
+		cmd: 'node',
+		args: ['--harmony', './src/index.js'],
+		opts: {
+			cwd: './src'
+		}
+	}
+});
+
+// You MUST then tell hott to monitor for the hotkeys being pressed!
+// You can pass in options if you want (currently only poll-rate, in ms)
+hott.monitorHotkeys({ poll: 50 });
 ```
 
 ### How it works
@@ -50,6 +73,5 @@ hott start
 ### Roadmap
 Features which should be coming soon:
 - CLI actions for adding, modifying and removing shortcuts more easily.
-- More flexible `cmd` options supporting inline JS and `spawn` support.
 - Watching the `.hott` file for changes and refreshing the daemon as required.
 - Non-global key-binding via API.

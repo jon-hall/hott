@@ -9,7 +9,7 @@ module.exports = function() {
 
     // See if the process is already running and shut it down if so
     if(pid) {
-        console.log('Checking for old process (pid: ' + pid + ')...');
+        console.log('Shutting down old process (pid: ' + pid + ')...');
         var procInfo = cp.execSync('WMIC path win32_process get Processid,' +
             'Commandline | FIND "' + pid + '"').toString().split(/\s/g).map(function(nl) {
                 return nl.trim();
@@ -24,10 +24,11 @@ module.exports = function() {
         });
 
         if(isOldProcess) {
-            console.log('Old process still running! Killing now...');
-
             // Kill the process
             cp.execSync('taskkill /pid ' + pid + ' /f');
+            console.log('Old process shutdown.');
+        } else {
+            console.log('Old process not found.');
         }
 
         fs.writeFileSync(pidfile, '');
