@@ -18,7 +18,7 @@ Hott currently has to be manually configured in the `.hott` file found in your h
 ```
 
 - key: The [virtual key code identifier](http://www.kbdedit.com/manual/low_level_vk_list.html) for the key that the hotkey is bound against.
-- modifiers: (optional) An array of modifier keys (currently, it must be an array even if it only had one item). Valid modifier keys are `MOD_SHIFT`, `MOD_ALT`, and `MOD_CONTROL`.
+- modifiers: (optional) An array of modifier keys (currently, it must be an array - even if it only has one item). Valid modifier keys are `MOD_SHIFT`, `MOD_ALT`, and `MOD_CONTROL`.
 - cmd: A string which will be executed using `child_process.exec` when the hotkey is triggered.
 
 ### Programmatic usage
