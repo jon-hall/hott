@@ -70,8 +70,7 @@ and
 hott start
 ```
 
-### Roadmap
-Features which should be coming soon:
+### TODO
 - CLI actions for adding, modifying and removing shortcuts more easily.
 - Watching the `.hott` file for changes and refreshing the daemon as required.
 - Non-global key-binding via API.
