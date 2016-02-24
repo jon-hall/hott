@@ -8,6 +8,7 @@ var errlog = path.resolve(__dirname, '../hott-bg-err.log');
 require('./shutdown.js')();
 
 module.exports = function() {
+    // Simple daemon - spawn and deref - pipe output to files
     var out = fs.openSync(outlog, 'a');
     var err = fs.openSync(errlog, 'a');
     var hott = cp.spawn('node', [
